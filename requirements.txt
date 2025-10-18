@@ -1,0 +1,6 @@
+Flask
+flask-cors
+requests
+python-docx
+pdfminer.six
+indic-transliteration
