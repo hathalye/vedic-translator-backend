@@ -4,3 +4,6 @@ requests
 python-docx
 pdfminer.six
 indic-transliteration
+transformers
+torch
+sentencepiece
