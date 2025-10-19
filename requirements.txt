@@ -7,3 +7,4 @@ indic-transliteration
 transformers
 torch
 sentencepiece
+indic-transliteration
