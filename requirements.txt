@@ -2,6 +2,6 @@ flask
 python-docx
 PyPDF2
 transformers
-torch==2.3.0+cpu
+torch==2.1.1
 sentencepiece
 indic-transliteration
