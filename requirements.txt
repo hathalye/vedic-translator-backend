@@ -1,10 +1,7 @@
-Flask
-flask-cors
-requests
+flask
 python-docx
-pdfminer.six
-indic-transliteration
+PyPDF2
 transformers
-torch
+torch==2.3.0+cpu
 sentencepiece
 indic-transliteration
