@@ -5,3 +5,4 @@ PyPDF2
 pdfminer.six
 googletrans==4.0.0-rc1
 indic-transliteration
+requests
