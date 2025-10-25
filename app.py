@@ -1,57 +1,56 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-import io
-import requests
 from utils.file_handler import extract_text_from_file, create_docx_from_text
-from utils.translator import transliterate_text, translate_literal, translate_gist
+from utils.translator import translate_text
+import os
+import tempfile
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/translate', methods=['POST'])
+@app.route("/translate", methods=["POST"])
 def translate():
     data = request.get_json()
-    text = data.get('text', '')
-    mode = data.get('mode', 'gist')
-    target_lang = data.get('target_lang', 'en')
+    text = data.get("text", "")
+    mode = data.get("mode", "gist")  # "transliterate", "literal", "gist"
 
-    if not text.strip():
-        return jsonify({'error': 'Empty input'}), 400
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
 
-    if mode == 'transliterate':
-        output = transliterate_text(text)
-    elif mode == 'literal':
-        output = translate_literal(text, target_lang)
-    else:
-        output = translate_gist(text, target_lang)
+    try:
+        translated_text = translate_text(text, mode=mode)
+        return jsonify({"translated_text": translated_text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    return jsonify({'output': output})
-
-@app.route('/upload', methods=['POST'])
+@app.route("/upload", methods=["POST"])
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
 
-    file = request.files['file']
-    text, warning = extract_text_from_file(file)
-    return jsonify({'text': text, 'warning': warning})
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
 
-@app.route('/download', methods=['POST'])
-def download_docx():
+    try:
+        text = extract_text_from_file(file)
+        return jsonify({"extracted_text": text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/download", methods=["POST"])
+def download_file():
     data = request.get_json()
-    translated_text = data.get('text', '')
-    docx_bytes = create_docx_from_text(translated_text)
+    text = data.get("text", "")
 
-    return send_file(
-        io.BytesIO(docx_bytes),
-        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        as_attachment=True,
-        download_name='translated_output.docx'
-    )
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
 
-@app.route('/')
-def home():
-    return "Vedic Translator Backend Running"
+    try:
+        temp_file_path = create_docx_from_text(text)
+        return send_file(temp_file_path, as_attachment=True, download_name="translated.docx")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5050)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
