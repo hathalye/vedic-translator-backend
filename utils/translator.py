@@ -1,41 +1,31 @@
-from transformers import MarianMTModel, MarianTokenizer
+# translator.py
+from googletrans import Translator
 from indic_transliteration import sanscript
 from indic_transliteration.sanscript import transliterate
 
-# Load MarianMT model for Hindi → English
-hi_to_en_model_name = "Helsinki-NLP/opus-mt-hi-en"
-hi_to_en_tokenizer = MarianTokenizer.from_pretrained(hi_to_en_model_name)
-hi_to_en_model = MarianMTModel.from_pretrained(hi_to_en_model_name)
+# Initialize translator
+translator = Translator()
 
 def translate_text(text, mode="gist", target_lang="en"):
     """
     Translate or transliterate input text.
     Modes:
       - "transliterate": convert Devanagari/Hindi/Sanskrit text to Latin letters
-      - "literal": literal-ish translation using MarianMT
-      - "gist": simpler/gist translation using MarianMT
+      - "literal": direct translation using Google Translate
+      - "gist": simpler/gist translation using Google Translate
     """
     if mode == "transliterate":
-        # Proper Devanagari -> Latin transliteration using indic-transliteration
+        # Proper Devanagari -> Latin transliteration
         return transliterate(text, sanscript.DEVANAGARI, sanscript.ITRANS)
-    
-    elif mode in ["literal", "gist"]:
-        # Use MarianMT for translation
-        inputs = hi_to_en_tokenizer(text, return_tensors="pt", truncation=True)
-        translated = hi_to_en_model.generate(
-            **inputs,
-            max_length=512,
-            num_beams=4,
-            do_sample=False
-        )
-        output = hi_to_en_tokenizer.decode(translated[0], skip_special_tokens=True)
 
-        if mode == "gist":
-            # For now, return same output; can later add summarization
-            return output
-        else:
-            return output
-    
+    elif mode in ["literal", "gist"]:
+        # Use Google Translate
+        try:
+            translated = translator.translate(text, src='hi', dest=target_lang)
+            return translated.text
+        except Exception as e:
+            return f"Translation error: {str(e)}"
+
     else:
         # fallback: return input if mode unknown
         return text
